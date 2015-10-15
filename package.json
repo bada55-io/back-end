@@ -1,0 +1,33 @@
+{
+  "name": "bada55-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bada55-io/back-end.git"
+  },
+  "author": "dhoko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bada55-io/back-end/issues"
+  },
+  "homepage": "https://github.com/bada55-io/back-end#readme",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "color": "^0.10.1",
+    "color-diff": "^0.1.7",
+    "compression": "^1.6.0",
+    "email-validator": "^1.0.3",
+    "express": "^4.13.3",
+    "gm": "^1.20.0",
+    "rss": "^1.2.0",
+    "sqlite3": "^3.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.7.1"
+  }
+}

@@ -72,8 +72,41 @@ module.exports = {
       console.log(colorDiff.diff(
         colorDiff.rgb_to_lab(colors[0]),
         colorDiff.rgb_to_lab(colors[2])
-      ))
+      ));
 
+
+      const sorted = data.sort((c1,c2) => {
+
+        var col1 = colorUtils('#' + c1.name).rgb()
+        var col2 = colorUtils('#' + c2.name).rgb()
+        var fff = {R: 255,G: 255,B: 255};
+
+
+        var a = colorDiff.diff(
+          colorDiff.rgb_to_lab(fff),
+          colorDiff.rgb_to_lab({
+            R: col1.r,
+            G: col1.g,
+            B: col1.b
+          })
+        );
+
+        var b = colorDiff.diff(
+          colorDiff.rgb_to_lab(fff),
+          colorDiff.rgb_to_lab({
+            R: col2.r,
+            G: col2.g,
+            B: col2.b
+          })
+        );
+
+        return a - b;
+      });
+
+
+      var fs = require('fs')
+
+      fs.writeFileSync('stats.json', JSON.stringify(sorted));
 
     });
   }

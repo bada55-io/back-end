@@ -4,7 +4,6 @@ var express     = require('express'),
     compress    = require('compression'),
     bodyParser  = require('body-parser');
 
-const Colors = require('./src/models/Colors');
 
 const app = express();
 app.use(compress());
@@ -17,30 +16,9 @@ app.listen(1337, function() {
 
 app.get('/', (req, res) => {
 
-  // Colors.latest((err, data) => {
-  //   console.log(data)
-  // })
-
-  // Colors.byName('bada55', (err, data) => {
-  //   console.log(data)
-  // })
-  // Colors.byVotes((err, data) => {
-  //   console.log(data)
-  // })
-
-  // Colors.alpha((err, data) => {
-  //   console.log(data)
-  // })
-  // Colors.lumen((err, data) => {
-  //   console.log(data)
-  // })
-// Colors.random((err, data) => {
-//     console.log(data)
-//   })
-//
-  Colors.swatches();
-
   return res.json({
     loaded: true
   })
 });
+
+require('./src/routes/color.route')(app);

@@ -47,41 +47,18 @@ module.exports = {
     db.all(query, cb);
   },
 
-  swatches() {
+  swatches(cb) {
     const query = makeQuery();
     db.all(query, (err, data) => {
-      // console.log(Array.isArray(data))
-      // console.log(data)
-      // colorDiff.diff.map_palette
-      const ob = data
-        .reduce((accus, color) => {
-          accus[color.name] = color;
-          return accus;
-        }, {});
 
-      const colors = Object.keys(ob).map(key => {
-        var item = colorUtils('#' + key).rgb();
-
-        return {
-          R: item.r,
-          G: item.g,
-          B: item.b
-        };
-      });
-
-      console.log(colorDiff.diff(
-        colorDiff.rgb_to_lab(colors[0]),
-        colorDiff.rgb_to_lab(colors[2])
-      ));
-
+      const fff = {R: 255,G: 255,B: 255};
 
       const sorted = data.sort((c1,c2) => {
 
-        var col1 = colorUtils('#' + c1.name).rgb()
-        var col2 = colorUtils('#' + c2.name).rgb()
-        var fff = {R: 255,G: 255,B: 255};
+        const col1 = colorUtils('#' + c1.name).rgb();
+        const col2 = colorUtils('#' + c2.name).rgb();
 
-
+        // Compute delta for the first color from the white
         var a = colorDiff.diff(
           colorDiff.rgb_to_lab(fff),
           colorDiff.rgb_to_lab({
@@ -91,6 +68,7 @@ module.exports = {
           })
         );
 
+        // Compute delta for the second color from the white
         var b = colorDiff.diff(
           colorDiff.rgb_to_lab(fff),
           colorDiff.rgb_to_lab({
@@ -104,9 +82,7 @@ module.exports = {
       });
 
 
-      var fs = require('fs')
-
-      fs.writeFileSync('stats.json', JSON.stringify(sorted));
+      cb(err, sorted);
 
     });
   }

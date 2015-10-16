@@ -3,8 +3,6 @@ const path = require('path');
 const DB_PATH = path.resolve(__dirname, '../../database/db.sqlite');
 const DB = new sqlite3.Database(DB_PATH);
 
-
-
 module.exports = {
 
   all(query, cb) {
@@ -18,8 +16,8 @@ module.exports = {
    * cf @link https://github.com/mapbox/node-sqlite3/wiki/API#databaserunsql-param--callback
    */
   update(query, cb) {
-    return DB.run(query, [],  function() {
-      cb(0 === this.changes);
+    return DB.run(query, [], function(err) {
+      cb(0 === this.changes || err, this.lastID);
     });
   }
 

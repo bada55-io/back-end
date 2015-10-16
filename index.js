@@ -1,8 +1,8 @@
 'use strict';
 const path = require('path');
-var express     = require('express'),
-    compress    = require('compression'),
-    bodyParser  = require('body-parser');
+const express = require('express');
+const compress = require('compression');
+const bodyParser = require('body-parser');
 
 
 const app = express();
@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
 
   return res.json({
     loaded: true
-  })
+  });
 });
 
 require('./src/routes/color.route')(app);

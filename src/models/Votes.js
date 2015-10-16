@@ -5,28 +5,41 @@ const Colors = require('./Colors');
 
 module.exports = {
 
+  create(config, cb) {
+
+    const timestamp = config.timestamp;
+    const colorId = config.color_id;
+
+    const query = `INSERT INTO
+      votes
+      (color_id, created_at, updated_at)
+      VALUES(${colorId}, '${timestamp}', '${timestamp}');`;
+
+    db.update(query, cb);
+  },
+
   like(color, cb) {
 
 
     Colors
       .byName(color, (err, data) => {
 
-        if(!data.length) {
+        if (!data.length) {
           return cb(true);
         }
 
-        const color_id = data[0].id;
-        const query = `SELECT * FROM votes WHERE color_id = ${color_id};`;
+        const colorId = data[0].id;
+        const query = `SELECT * FROM votes WHERE color_id = ${colorId};`;
 
         db
-          .all(query, (err, data) => {
+          .all(query, (error, rep) => {
 
-            if(err) {
-              return cb(err);
+            if (error) {
+              return cb(error);
             }
 
-            const id = data[0].id;
-            const like = data[0].like + 1;
+            const id = rep[0].id;
+            const like = rep[0].like + 1;
             const updateQuery = `UPDATE votes SET like = ${like} WHERE id = ${id}`;
 
             db.update(updateQuery, cb);

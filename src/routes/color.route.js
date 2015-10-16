@@ -2,9 +2,22 @@ const Colors = require('../models/Colors');
 
 module.exports = app => {
 
+  app.get('/colors/create', (req, res) => {
+
+    Colors
+      .create({
+        name: 'banana',
+        label: 'badass',
+        author: 'dhoko',
+        twitter: 0
+      });
+
+    return res.json({created: true});
+  });
+
   app.get('/color/:color', (req, res) => {
 
-    if(!/^[a-f0-9]{3,6}$/.test(req.params.color)) {
+    if (!/^[a-f0-9]{3,6}$/.test(req.params.color)) {
       return res.json({
         message: 'Invalid color name'
       }).status(412).end();
@@ -12,11 +25,11 @@ module.exports = app => {
 
     Colors.byName(req.params.color, (err, data) => {
 
-      if(err) {
+      if (err) {
         return res.status(500).end();
       }
 
-      if(!data.length) {
+      if (!data.length) {
         return res.status(404).end();
       }
 

@@ -4,7 +4,7 @@ module.exports = app => {
 
   app.get('/like/:color', (req, res) => {
 
-    if(!/^[a-f0-9]{3,6}$/.test(req.params.color)) {
+    if (!/^[a-f0-9]{3,6}$/.test(req.params.color)) {
       return res.json({
         message: 'Invalid color name'
       }).status(412).end();
@@ -13,8 +13,8 @@ module.exports = app => {
 
     Votes.like(req.params.color, function (err, data) {
 
-      console.log('arg', err, data)
-      if(err) {
+      console.log('arg', err, data);
+      if (err) {
         return res.status(500).end();
       }
       console.log(err, data);

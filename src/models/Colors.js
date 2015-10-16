@@ -5,9 +5,15 @@ const colorUtils = require('color');
 const FIELDS = ['color.name', 'color.label', 'color.author', 'color.twitter', 'color.created_at', 'color.lumen'];
 const VOTES = 'votes.like as votes';
 
-const fields = FIELDS.join(',') + ',' + VOTES;
 
-function makeQuery() {
+function makeQuery(withId) {
+
+  var fields = FIELDS.join(',') + ',' + VOTES;
+
+  if(withId) {
+    fields = 'color.id,' + fields;
+  }
+
   return `SELECT ${fields}
   FROM colors as color
   INNER JOIN votes as votes
@@ -22,8 +28,8 @@ module.exports = {
     db.all(query, cb);
   },
 
-  byName(name, cb) {
-    const query = makeQuery() + `AND color.name = '${name}';`;
+  byName(name, cb, withId) {
+    const query = makeQuery(withId) + `AND color.name = '${name}';`;
     db.all(query, cb);
   },
 

@@ -22,3 +22,4 @@ app.get('/', (req, res) => {
 });
 
 require('./src/routes/color.route')(app);
+require('./src/routes/vote.route')(app);

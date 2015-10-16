@@ -2,12 +2,10 @@ const Colors = require('../models/Colors');
 
 module.exports = app => {
 
-  // app.param('color', /^[a-f0-9]{3,6}$/);
-
   app.get('/color/:color', (req, res) => {
 
     if(!/^[a-f0-9]{3,6}$/.test(req.params.color)) {
-      res.json({
+      return res.json({
         message: 'Invalid color name'
       }).status(412).end();
     }

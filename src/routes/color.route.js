@@ -2,17 +2,15 @@ const Colors = require('../models/Colors');
 
 module.exports = app => {
 
-  app.get('/colors/create', (req, res) => {
+  app.post('/colors/create', (req, res) => {
 
-    Colors
-      .create({
-        name: 'banana',
-        label: 'badass',
-        author: 'dhoko',
-        twitter: 0
-      });
+    const validation = Colors.validate(req.body);
 
-    return res.json({created: true});
+    if (validation.isValid) {
+      return res.json({created: true});
+    }
+
+    return res.status(412).json(validation.error).end();
   });
 
   app.get('/color/:color', (req, res) => {

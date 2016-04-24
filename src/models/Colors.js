@@ -8,7 +8,6 @@ const crypto = require('crypto');
 const FIELDS = ['color.name', 'color.label', 'color.author', 'color.twitter', 'color.created_at', 'color.lumen', 'votes.like as votes'].join(',');
 
 
-
 function getHash(value) {
   const sha1 = crypto.createHash('sha1');
   sha1.update(value);
@@ -16,9 +15,7 @@ function getHash(value) {
 }
 
 function makeQuery(withId) {
-
   const fields = withId ? 'color.id,' + FIELDS : FIELDS;
-
   return `SELECT ${fields}
     FROM colors as color
     INNER JOIN votes as votes
@@ -26,24 +23,64 @@ function makeQuery(withId) {
     WHERE color.active = 1 `;
 }
 
+function buildValues (color) {
+  const name = color.name;
+  const label = color.label;
+  const author = color.author;
+  const twitter = color.twitter || 0;
+  const TS = moment().format('YYYY-MM-DD HH:mm:ss');
+  const token = getHash(name + label);
+  // const lumen = colorUtils('#eee').luminosity();
+  const lumen = colorUtils('#' + name).luminosity();
+  const sql = `"${name}","${label}",${lumen},"${author}",${twitter},"${token}",0,'${TS}','${TS}'`;
+
+  return `(${sql})`;
+}
+
+function buildInsert(colors) {
+  const query = `INSERT INTO
+    colors
+    (name, label, lumen, author, twitter, token, active, created_at, updated_at)
+    VALUES ${colors.map(buildValues).join(',')};`;
+  return query;
+}
+
 module.exports = {
+
+  buildInsert,
+
+  validate(color) {
+    var validate = {};
+    if (!/^[a-f0-9]{3,6}$/.test(color.name)) {
+      validate['name'] = {
+        valid: false,
+        message: 'Invalid color name'
+      };
+    }
+
+    if (!/^[a-zA-Z0-9\@\_\-\.\=\+]{2,60}$/i.test(color.author)) {
+      validate['author'] = {
+        valid: false,
+        message: 'Invalid author name'
+      };
+    }
+
+    if (!/^[a-zA-Z]{3,32}$/i.test(color.label)) {
+      validate['label'] = {
+        valid: false,
+        message: 'Invalid label for the color'
+      };
+    }
+
+    return {
+      isValid: !Object.keys(validate).length,
+      error: validate
+    };
+  },
 
   create(color, cb) {
 
-    const name = color.name;
-    const label = color.label;
-    const author = color.author;
-    const twitter = color.twitter;
-    const TS = moment().format('YYYY-MM-DD HH:mm:ss');
-    const token = getHash(name + label);
-    // const lumen = colorUtils('#eee').luminosity();
-    const lumen = colorUtils('#' + name).luminosity();
-    const sql = `"${name}","${label}",${lumen},"${author}",${twitter},"${token}",0,'${TS}','${TS}'`;
-
-    const query = `INSERT INTO
-      colors
-      (name, label, lumen, author, twitter, token, active, created_at, updated_at)
-      VALUES(${sql});`;
+    const query = buildInsert([color]);
 
     db
       .update(query, (err, id) => {
@@ -72,6 +109,7 @@ module.exports = {
 
   byName(name, cb, withId) {
     const query = makeQuery(withId) + `AND color.name = '${name}';`;
+    console.log(query)
     db.all(query, cb);
   },
 

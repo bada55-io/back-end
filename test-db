@@ -1,24 +1,76 @@
 #!/usr/bin/env node
-const got  = require('got');
-const SRC_URL = `http://bada55.io/colors`;
+const fs  = require('fs');
+const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
+const DB_PATH = path.resolve(__dirname, './database/db.sqlite');
+const DB = new sqlite3.Database(DB_PATH);
 
-const ColorModel = require('./src/models/Colors');
+const isCommand = name => process.argv.indexOf(name) !== -1;
 
-got(SRC_URL, {json: true})
-  .then(rep => {
-    Object
-      .keys(rep.body)
-      .forEach(label => {
+isCommand('migrate') && migrate();
+isCommand('seed') && seed();
+function migrate() {
 
-        const model = {
+  ['Colors', 'Votes', 'Users']
+    .forEach(migration => {
+      fs
+        .readFile(`./migrations/${migration}.sql`, 'utf8', (err, file) => {
+          DB.serialize(() => {
+            DB.run(file);
+          });
+        });
+    });
+}
+
+function seed() {
+  const got  = require('got');
+  const SRC_URL = `http://bada55.io/colors`;
+  const ColorModel = require('./src/models/Colors');
+
+  got(SRC_URL, {json: true})
+    .then(rep => {
+      const list = Object
+        .keys(rep.body)
+        .map(label => ({
           label,
           name: rep.body[label],
-          author: 'dhoko'
-        };
+          author: 'dhoko',
+          twitter: +(Math.random() > .65)
+        }))
 
-        ColorModel.create(model, err => {
-          console.log(err)
-        })
+      const sql = ColorModel.buildInsert(list);
+      DB.serialize(() => {
+        DB.run(sql, function(err) {
 
-      })
-  })
+          if (err) {
+            console.error(' Seed colors error', err);
+            return process.exit(1);
+          }
+
+          if (this.changes || this.lastID) {
+            console.log(' ~ Seed colors success');
+          }
+
+          DB.all('select id, created_at from colors', (error, data) => {
+            const values = data
+              .map((color) => `(${color.id}, '${color.created_at}', '${color.created_at}')`).join(',');
+            const sql = `INSERT INTO votes (color_id, created_at, updated_at) VALUES ${values};`;
+
+            DB.run(sql, function(err) {
+
+              if (err) {
+                console.error(' Seed votes error', err);
+                return process.exit(1);
+              }
+
+              if (this.changes || this.lastID) {
+                console.log(' ~ Seed votes success');
+              }
+            });
+          })
+        });
+      });
+    })
+
+}
+

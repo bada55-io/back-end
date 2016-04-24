@@ -31,6 +31,7 @@
     "time-stamp": "^0.1.1"
   },
   "devDependencies": {
+    "got": "^6.3.0",
     "nodemon": "^1.7.1"
   }
 }

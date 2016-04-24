@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+const got  = require('got');
+const SRC_URL = `http://bada55.io/colors`;
+
+const ColorModel = require('./src/models/Colors');
+
+got(SRC_URL, {json: true})
+  .then(rep => {
+    Object
+      .keys(rep.body)
+      .forEach(label => {
+
+        const model = {
+          label,
+          name: rep.body[label],
+          author: 'dhoko'
+        };
+
+        ColorModel.create(model, err => {
+          console.log(err)
+        })
+
+      })
+  })

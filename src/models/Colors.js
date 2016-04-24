@@ -1,5 +1,3 @@
-'use strict';
-
 const db = require('./db');
 const Votes = require('./Votes');
 const colorDiff = require('color-diff');
@@ -19,37 +17,33 @@ function getHash(value) {
 
 function makeQuery(withId) {
 
-  var fields = FIELDS;
-
-  if (withId) {
-    fields = 'color.id,' + fields;
-  }
+  const fields = withId ? 'color.id,' + FIELDS : FIELDS;
 
   return `SELECT ${fields}
-  FROM colors as color
-  INNER JOIN votes as votes
-  ON votes.color_id = color.id
-  WHERE color.active = 1 `;
+    FROM colors as color
+    INNER JOIN votes as votes
+    ON votes.color_id = color.id
+    WHERE color.active = 1 `;
 }
 
 module.exports = {
 
   create(color, cb) {
 
+    const name = color.name;
+    const label = color.label;
+    const author = color.author;
+    const twitter = color.twitter;
     const TS = moment().format('YYYY-MM-DD HH:mm:ss');
-    const token = getHash(color.name + color.label);
-    const lumen = colorUtils('#eee').luminosity();
-    // const lumen = colorUtils('#' + color.name).luminosity();
-    const sql = `"$name","$label",${lumen},"$author",$twitter,"${token}",0,'${TS}','${TS}'`;
-
-    const params = Object
-      .keys(color)
-      .reduce((accus, key) => accus.replace('$' + key, color[key]), sql);
+    const token = getHash(name + label);
+    // const lumen = colorUtils('#eee').luminosity();
+    const lumen = colorUtils('#' + name).luminosity();
+    const sql = `"${name}","${label}",${lumen},"${author}",${twitter},"${token}",0,'${TS}','${TS}'`;
 
     const query = `INSERT INTO
       colors
       (name, label, lumen, author, twitter, token, active, created_at, updated_at)
-      VALUES(${params});`;
+      VALUES(${sql});`;
 
     db
       .update(query, (err, id) => {

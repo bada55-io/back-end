@@ -1,53 +1,10 @@
 const db = require('./db');
 const Votes = require('./Votes');
+const queryBuilder = require('../utils/queryBuilder');
 const colorDiff = require('color-diff');
 const colorUtils = require('color');
-const moment = require('moment');
-const crypto = require('crypto');
-
-const FIELDS = ['color.name', 'color.label', 'color.author', 'color.twitter', 'color.created_at', 'color.lumen', 'votes.like as votes'].join(',');
-
-
-function getHash(value) {
-  const sha1 = crypto.createHash('sha1');
-  sha1.update(value);
-  return sha1.digest('hex');
-}
-
-function makeQuery(withId) {
-  const fields = withId ? 'color.id,' + FIELDS : FIELDS;
-  return `SELECT ${fields}
-    FROM colors as color
-    INNER JOIN votes as votes
-    ON votes.color_id = color.id
-    WHERE color.active = 1 `;
-}
-
-function buildValues (color) {
-  const name = color.name;
-  const label = color.label;
-  const author = color.author;
-  const twitter = color.twitter || 0;
-  const TS = moment().format('YYYY-MM-DD HH:mm:ss');
-  const token = getHash(name + label);
-  // const lumen = colorUtils('#eee').luminosity();
-  const lumen = colorUtils('#' + name).luminosity();
-  const sql = `"${name}","${label}",${lumen},"${author}",${twitter},"${token}",0,'${TS}','${TS}'`;
-
-  return `(${sql})`;
-}
-
-function buildInsert(colors) {
-  const query = `INSERT INTO
-    colors
-    (name, label, lumen, author, twitter, token, active, created_at, updated_at)
-    VALUES ${colors.map(buildValues).join(',')};`;
-  return query;
-}
 
 module.exports = {
-
-  buildInsert,
 
   validate(color) {
     var validate = {};
@@ -80,62 +37,57 @@ module.exports = {
 
   create(color, cb) {
 
-    const query = buildInsert([color]);
+    const query = queryBuilder.build([color]);
+    const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
 
-    db
-      .update(query, (err, id) => {
+    db.update(query, (err, color_id) => {
+      if (err) {
+        return cb(err);
+      }
 
-        if (err) {
-          return cb(err);
-        }
+      console.log('created data', err, id);
 
-        console.log('created data', err, id);
-
-        Votes
-          .create({
-            color_id: id,
-            timestamp: TS
-          }, (error, data) => {
-            console.log('Vote', err, data);
-          });
-
+      Votes.create({ color_id, timestamp }, (error, data) => {
+        console.log('Vote', err, data);
       });
+    });
   },
 
-  alpha(cb) {
-    const query = makeQuery() + 'ORDER BY color.label ASC;';
-    db.all(query, cb);
+  alpha({ query }, cb) {
+    const factory = queryBuilder.make(false, 'ORDER BY color.label ASC');
+    db.all(factory(query), cb);
   },
 
-  byName(name, cb, withId) {
-    const query = makeQuery(withId) + `AND color.name = '${name}';`;
-    console.log(query)
-    db.all(query, cb);
+  byName({ params = {}, query }, cb, withId) {
+    const factory = queryBuilder.make(withId, `AND color.name = '${params.color}'`);
+    db.all(factory(query), cb);
   },
 
-  byVotes(cb) {
-    const query = makeQuery() + 'ORDER BY votes.like DESC;';
-    db.all(query, cb);
+  byVotes({ query }, cb) {
+    const factory = queryBuilder.make(false, 'ORDER BY votes.like DESC');
+    return db.all(factory(query), cb);
   },
 
-  latest(cb) {
-    const query = makeQuery() + 'ORDER BY color.created_at DESC;';
-    db.all(query, cb);
+  latest({ query }, cb) {
+    const factory = queryBuilder.make(false, 'ORDER BY color.created_at DESC');
+
+    db.all(factory(query), cb);
   },
 
-  lumen(cb) {
-    const query = makeQuery() + 'ORDER BY color.lumen DESC;';
-    db.all(query, cb);
+  lumen({ query }, cb) {
+    const factory = queryBuilder.make(false, 'ORDER BY color.lumen DESC');
+    db.all(factory(query), cb);
   },
 
-  random(cb) {
-    const query = makeQuery() + 'ORDER BY ABS(RANDOM());';
-    db.all(query, cb);
+  random({ query }, cb) {
+    const factory = queryBuilder.make(false, 'ORDER BY ABS(RANDOM())');
+    console.log(factory(query));
+    db.all(factory(query), cb);
   },
 
-  swatches(cb) {
-    const query = makeQuery();
-    db.all(query, (err, data) => {
+  swatches({ query }, cb) {
+    const factory = queryBuilder.make();
+    db.all(factory(query), (err, data) => {
 
       const fff = {R: 255, G: 255, B: 255};
 
@@ -166,7 +118,6 @@ module.exports = {
 
         return a - b;
       });
-
 
       cb(err, sorted);
 

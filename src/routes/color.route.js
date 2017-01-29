@@ -21,7 +21,7 @@ module.exports = app => {
       }).status(412).end();
     }
 
-    Colors.byName(req.params.color, (err, data) => {
+    Colors.byName(req, (err, data) => {
 
       if (err) {
         return res.status(500).end();
@@ -36,37 +36,38 @@ module.exports = app => {
   });
 
   app.get('/colors', (req, res) => {
-    Colors.byVotes((err, data) => {
+    Colors.byVotes(req, (err, data) => {
+      console.log(err);
       return res.json(data);
     });
   });
 
-  app.get('/colors/newest', (req, res) => {
-    Colors.latest((err, data) => {
+  app.get('/colors/latest', (req, res) => {
+    Colors.latest(req, (err, data) => {
       return res.json(data);
     });
   });
 
   app.get('/colors/random', (req, res) => {
-    Colors.byVotes((err, data) => {
+    Colors.random(req, (err, data) => {
       return res.json(data);
     });
   });
 
   app.get('/colors/alpha', (req, res) => {
-    Colors.alpha((err, data) => {
+    Colors.alpha(req, (err, data) => {
       return res.json(data);
     });
   });
 
   app.get('/colors/lumens', (req, res) => {
-    Colors.lumen((err, data) => {
+    Colors.lumen(req, (err, data) => {
       return res.json(data);
     });
   });
 
   app.get('/colors/distance', (req, res) => {
-    Colors.swatches((err, data) => {
+    Colors.swatches(req, (err, data) => {
       return res.json(data);
     });
   });
